@@ -16,6 +16,12 @@ const io = new Server(server, {
     }
 });
 
+// setInterval(() => {
+//     allGames.forEach(game => {
+
+//     });
+// }, 10000);
+
 app.get('/', (req, res) => {
     res.json(allGames);
 });
@@ -59,8 +65,9 @@ io.on('connection', (socket) => {
     socket.on("startGame", (difficulty: string) => {
         console.log('difficulty', difficulty);
         const foundGame = allGames.find(e => e.id === currentRoom);
+        const availableCountries = allCountries.filter(country => country.difficulty === difficulty);
         const chosenPlayer = foundGame.players[Math.floor(Math.random()*foundGame.players.length)];
-        const chosenCountry = allCountries.filter(country => country.difficulty === difficulty)[Math.floor(Math.random()*allCountries.length)];
+        const chosenCountry = availableCountries[Math.floor(Math.random()*availableCountries.length)];
         console.log('CHOSEN PLAYER', chosenPlayer);
         console.log('CHOSEN COUNTRY', chosenCountry);
         allGames[allGames.indexOf(foundGame)].inGame = true;
@@ -79,7 +86,7 @@ io.on('connection', (socket) => {
         console.log("NEW MSG:", msg, currentRoom);
         if(room.inGame) {
             console.log('In game.');
-            if((msg.message).toLowerCase() === room.currentGameFlag.toLowerCase()) {
+            if(String((msg.message).toLowerCase()).includes(room.currentGameFlag.toLowerCase())) {
                 io.sockets.to(currentRoom).emit("msgToClient", { name: 'Bot', message: `${name} got it right!`, points: 500, recieve: true });
                 room.players[room.players.indexOf(currentPlayer)].points += 500;
             } else {
